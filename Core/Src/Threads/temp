@@ -1,0 +1,49 @@
+/*
+ * Отрисовка экрана соответствующей страницы
+ */
+static void DrawScreen(void)
+{
+	switch (screenState){
+	case MAIN:
+	{
+		ClearScreen();
+		ScrennButton_Select(&sbEM4100);
+		ScrennButton_DrawButton(&sbEM4100);
+		break;
+	}
+	case EM4100:
+	{
+		ClearScreen();
+		ScrennButton_Select(&sbEM4100_TagDetect);
+		ScrennButton_DrawButton(&sbEM4100_TagDetect);
+		ScrennButton_DrawButton(&sbEM4100_TagEmul);
+		ScrennButton_DrawButton(&sbCancel);
+		break;
+	}
+	case EM4100_TAG_DETECT:
+	{
+		ClearScreen();
+		ConsoleClearBuffer();
+		ConsoleDrawBorder();
+		//ConsoleSendString("Waiting for tag...\n");
+		ScrennButton_DrawButton(&sbCancel);
+		ScrennButton_Disable(&sbAdd);
+		ScrennButton_DrawButton(&sbAdd);
+		break;
+	}
+	case EM4100_TAG_EMUL:
+	{
+		ClearScreen();
+		ConsoleClearBuffer();
+		ConsoleDrawBorder();
+		ScrennButton_DrawButton(&sbCancel);
+		ScrennButton_Disable(&sbRunAll);
+		ScrennButton_DrawButton(&sbRunAll);
+		break;
+	}
+	default:
+	{
+		break;
+	}
+	}
+}

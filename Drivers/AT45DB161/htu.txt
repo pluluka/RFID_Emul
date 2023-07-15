@@ -1,0 +1,52 @@
+	AT45DB161_Init();
+
+	uint8_t status = AT45DB161_ReadStatus();
+	memset((char *)str_buff, 0x00, 10);
+	sprintf(str_buff, "Status: %02X", status);
+	USART_SendStr(USART1, str_buff);
+	USART_SendEndLine(USART1);
+	uint8_t id[4];
+
+	AT45DB161_ReadID(id);
+	memset((char *)str_buff, 0x00, 10);
+	sprintf(str_buff, "Device ID: %02X %02X %02X %02X", id[0],id[1],id[2],id[3]);
+	USART_SendStr(USART1, str_buff);
+	USART_SendEndLine(USART1);
+	
+	
+	
+		AT45DB161_Init();
+	{
+		LCD_Console_SendString("Initialization process at AT45DB161..\n");
+
+		uint8_t status = AT45DB161_ReadStatus();
+		memset((char *)str_buff, 0x00, 10);
+		sprintf(str_buff, "AT45DB161 status register: %02X", status);
+		LCD_Console_SendString(str_buff);
+		LCD_Console_NewLine();
+		LCD_Console_NewLine();
+
+		uint8_t id[4];
+		AT45DB161_ReadID(id);
+		memset((char *)str_buff, 0x00, 10);
+		sprintf(str_buff, "AT45DB161 device ID: %02X %02X %02X %02X", id[0],id[1],id[2],id[3]);
+		LCD_Console_SendString(str_buff);
+		LCD_Console_NewLine();
+	}
+	
+	
+	
+	
+	
+			if (t >= 4094)
+			t = 0;
+		AT45DB161_MemoryRead(t, 0, dl, buff);
+		memset((char *)str_buff, 0x00, 10);
+		for(uint32_t i = 0; i < dl; i ++)
+		{
+			if ((i % 10) == 0)
+				LCD_Console_NewLine();
+			sprintf(str_buff, "%02X ", buff[i]);
+			LCD_Console_SendString(str_buff);
+		}
+		t ++;

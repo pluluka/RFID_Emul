@@ -1,0 +1,74 @@
+void TestThread(void const * argument)
+{
+	osEvent		evt;
+	int32_t		val;
+
+	uint8_t ds1990Data[8];
+	uint8_t uniData[8] = {0x01,0x4F,0xD6,0x27,0x01,0x00,0x00,0xF3};
+
+	OneWireSlaveDS1990_OnWire(uniData);
+
+	/**** Поток ****/
+	for(;;)
+	{
+		evt = osMessageGet(msgQueueTest, osWaitForever);
+		if (evt.status == osEventMessage)
+		{
+			val = evt.value.v;
+			
+			switch (val){
+			// нажата кнопка 2
+			case EXTBTN_PA2:
+			{
+				osDelay(2);
+
+				uint8_t res = OneWireMasterDS1990_ReadROM(ds1990Data);
+			 	if (res == OW_RS_OK)
+			 	{
+			    	printf("%02X ", ds1990Data[0]);
+			    	printf("%02X ", ds1990Data[6]);
+			    	printf("%02X ", ds1990Data[5]);
+			    	printf("%02X ", ds1990Data[4]);
+			    	printf("%02X ", ds1990Data[3]);
+			    	printf("%02X ", ds1990Data[2]);
+			    	printf("%02X ", ds1990Data[1]);
+			    	printf("%02X\n", ds1990Data[7]);
+			   	}
+			   	else
+			   	{
+			    	printf("%02X ", ds1990Data[0]);
+			    	printf("%02X ", ds1990Data[6]);
+			    	printf("%02X ", ds1990Data[5]);
+			    	printf("%02X ", ds1990Data[4]);
+			    	printf("%02X ", ds1990Data[3]);
+			    	printf("%02X ", ds1990Data[2]);
+			    	printf("%02X ", ds1990Data[1]);
+			    	printf("%02X\n", ds1990Data[7]);
+			    	printf("Read error code %02X\n", res);
+			   	}
+
+				break;
+			}
+			// нажата кнопка 1
+			case EXTBTN_PA1:
+			{
+				uniData[4] ++;
+				OneWireSlaveDS1990_OffWire();
+				while (OneWireSlaveDS1990_OnWire(uniData))
+				{
+					osDelay(1);
+				}
+
+				break;
+
+			}
+			default:
+				break;
+			}
+
+		}
+
+		osThreadYield();
+
+	}
+}

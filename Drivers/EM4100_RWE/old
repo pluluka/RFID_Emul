@@ -1,0 +1,151 @@
+		switch (decoderState){
+		//====	Ожидание синхропоследовательности ========
+		case	DECODER_WAIT:
+		{
+			// перепад [0 --> 1] детектирован
+			if (LL_GPIO_IsInputPinSet (DECODER_GPIO, DECODER_GPIO_PIN))
+			{
+				DECODER_TIMER->CNT = 0;
+				decoderState = DECODER_SYNCH_DETECT;
+				break;
+			}
+			else
+			{
+				DECODER_TIMER->CNT = 0;
+			}
+			break;
+		}
+		//=== Детектирование синхропоследовательности
+		case	DECODER_SYNCH_DETECT:
+		{
+			if ((decoderSimpleTime > MODULATOR_PERIOD_LOW_EDGE) && (decoderSimpleTime < MODULATOR_PERIOD_LHIGH_EDGE))
+			{
+				// перепад [1 --> 0] (соответствует лог '1'), запоминаем
+				if (!LL_GPIO_IsInputPinSet (DECODER_GPIO, DECODER_GPIO_PIN))
+				{
+					DECODER_TIMER->CNT = 0;
+					decoderState = DECODER_HEAD_DETECT;
+					decoderBitCnt = 1;
+					break;
+				}
+			}
+			// сброс состояния декодера
+			DECODER_TIMER->CNT = 0;
+			decoderState = DECODER_WAIT;
+			decoderBitCnt = 0;
+
+			break;
+		}
+		//======== Детектирование заголовка ===========
+		case	DECODER_HEAD_DETECT:
+		{
+			//Delay(200);
+			// если попался перепад на 1/2 периода, пропускаем его
+			if ((decoderSimpleTime > MODULATOR_PERIOD_LOW_EDGE/2) && (decoderSimpleTime < MODULATOR_PERIOD_LHIGH_EDGE/2))
+			{
+				break;
+			}
+			// перепад на полном периоде
+			else if ((decoderSimpleTime > MODULATOR_PERIOD_LOW_EDGE) && (decoderSimpleTime < MODULATOR_PERIOD_LHIGH_EDGE))
+			{
+				DECODER_TIMER->CNT = 0;
+				// перепад [1 --> 0] (соответствует лог '1'), запоминаем
+				if (!LL_GPIO_IsInputPinSet (DECODER_GPIO, DECODER_GPIO_PIN))
+				{
+					decoderBitCnt ++;
+					//osMessagePut(msgQueueTest, decoderBitCnt, 0) ;
+					// заголовок детектирован полностью, переходим к след. состоянию
+					if (decoderBitCnt == HEAD_LENGTH)
+					{
+						decoderBitCnt = 0;
+						decoderState = DECODER_READ_DATA;
+					}
+					break;
+				}
+				// перепад [0 --> 1] (соответствует лог '0'). Детектируем синхросигнал поновой.
+				else
+				{
+					// сбрасываем декодер до начального состояния
+					decoderState = DECODER_SYNCH_DETECT;
+					decoderBitCnt = 0;
+					break;
+				}
+				//osMessagePut(msgQueueTest, decoderSimpleTime, 0) ;
+				break;
+			}
+			// сброс состояния декодера
+			else
+			{
+				DECODER_TIMER->CNT = 0;
+				decoderState = DECODER_WAIT;
+				decoderBitCnt = 0;
+			}
+			break;
+		}
+		//====== Чтение данных =========
+		case	DECODER_READ_DATA:
+		{
+			//Delay(400);
+			// если попался перепад на 1/2 периода, пропускаем его
+			if ((decoderSimpleTime > MODULATOR_PERIOD_LOW_EDGE/2) && (decoderSimpleTime < MODULATOR_PERIOD_LHIGH_EDGE/2))
+			{
+				break;
+			}
+			// перепад на полном периоде (допустимый временной интервал, бит считан корректно)
+			else if ((decoderSimpleTime > MODULATOR_PERIOD_LOW_EDGE) && (decoderSimpleTime < MODULATOR_PERIOD_LHIGH_EDGE))
+			{
+				DECODER_TIMER->CNT = 0;
+				// записываем полученый бит в буфер
+				// перепад [1 --> 0] (соответствует лог '1')
+				if (!LL_GPIO_IsInputPinSet (DECODER_GPIO, DECODER_GPIO_PIN))
+				{
+					dataFrame.frame[(uint32_t)(decoderBitCnt / 5)]  |=  1U <<  (4 -  (uint32_t)(decoderBitCnt % 5));
+				}
+				// перепад [0 --> 1] (соответствует лог '0')
+				else
+				{
+					dataFrame.frame[(uint32_t)(decoderBitCnt / 5)]  &=  ~(1U << (4 -   (uint32_t)(decoderBitCnt % 5)));
+				}
+
+				decoderBitCnt ++;
+				// Данные приняты в полном объеме
+				if (decoderBitCnt == DATA_LENGTH)
+				{
+					// тормозим декодер
+					Decoder_OFF();
+					decoderState = DECODER_WAIT;
+
+					// Тут размещается блок инструкций для дальнейшей обработки данных.
+					// (проверка на валидность, извлечение данных метки, семафор...)
+					// После обработки, для дальнейшей работы, декодер необходимо
+					// запускать повторно вызовом Decoder_ON()
+
+					if (osSemaphoreRelease(semaphoreTest) == osOK)
+					{
+						osThreadYield();
+						break;
+					}
+
+				}
+				break;
+			}
+			// сброс состояния декодера
+			else
+			{
+				DECODER_TIMER->CNT = 0;
+				decoderState = DECODER_WAIT;
+				decoderBitCnt = 0;
+				memset(dataFrame.frame, 0x00, sizeof(dataFrame));
+			}
+			break;
+		}
+		//========= Все остальное ==========
+		default:
+		{
+			DECODER_TIMER->CNT = 0;
+			decoderState = DECODER_WAIT;
+			decoderBitCnt = 0;
+			break;
+		}
+
+		} // swith end

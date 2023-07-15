@@ -1,0 +1,158 @@
+	  
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+тип карты
+
+if (RC522_PcdRequest(RC522_PICC_REQIDL, tagType) == MI_OK)
+	  {
+		  memset((uint8_t *)freq_str_buff, 0x00, 10);
+		  itoa((int)tagType[0], (char *)freq_str_buff, 16);
+		  ILI9341_DrawString(freq_str_buff, 2, 20, 20, ILI9341_COL_BLACK, ILI9341_COL_WHITE);
+
+		  memset((uint8_t *)freq_str_buff, 0x00, 10);
+		  itoa((int)tagType[1], (char *)freq_str_buff, 16);
+		  ILI9341_DrawString(freq_str_buff, 2, 60, 20, ILI9341_COL_BLACK, ILI9341_COL_WHITE);
+
+		  ILI9341_DrawString("card present", 16, 20, 40, ILI9341_COL_BLACK, ILI9341_COL_WHITE);
+
+		  RC522_PcdRequest(RC522_PICC_HALT, tagType);
+	  }
+	  else
+	  {
+		  ILI9341_DrawString("no card present", 16, 20, 40, ILI9341_COL_BLACK, ILI9341_COL_WHITE);
+	  }
+
+//////////////////////////// main.c //////////////////////////////////////////////////////////////////////
+
+
+
+	RC522_Init();
+
+	USART_DefaultInit(USART1, 9600U);
+
+	uint32_t picc_count = 0;
+	PICC_ProtBaseInfTypeDef PICC_ProtBaseInf;
+
+	USART_SendEndLine(USART1);
+	USART_SendEndLine(USART1);
+	USART_SendStr(USART1, " !!!!!! RC522 is running now  !!!!!! ");
+	USART_SendEndLine(USART1);
+	USART_SendEndLine(USART1);
+
+
+	//char inData[7] = {0x08, 0x70, 0xC2, 0xA8, 0x2D, 0xF4, 0xB3};
+	//char crc[2] = {0};
+	uint8_t status;
+	uint8_t data[18] = {0};
+	uint8_t blockAddr = 0x00;
+
+	while (1)
+
+	{
+		__delay(1000000);
+
+
+
+		if (RC522_CardDetect(&PICC_ProtBaseInf))
+		{
+
+			picc_count ++;
+			USART_SendEndLine(USART1);
+			memset((char *)str_buff, 0x00, 10);
+			sprintf(str_buff, "%06d", picc_count);
+			USART_SendStr(USART1, str_buff);
+			USART_SendStr(USART1, " New card present.");
+			USART_SendEndLine(USART1);
+			USART_SendStr(USART1, "ATQA: ");
+			memset((char *)str_buff, 0x00, 10);
+			sprintf(str_buff, "%02X%02X", PICC_ProtBaseInf.ATQA[0], PICC_ProtBaseInf.ATQA[1]);
+			USART_SendStr(USART1, str_buff);
+			USART_SendEndLine(USART1);
+
+
+
+			if (RC522_CardSelect(&PICC_ProtBaseInf))
+			{
+				USART_SendStr(USART1, "SAK: ");
+				memset((char *)str_buff, 0x00, 10);
+				sprintf(str_buff, "%02X %02X %02X", PICC_ProtBaseInf.SAK[0], \
+						PICC_ProtBaseInf.SAK[1], PICC_ProtBaseInf.SAK[2]);
+				USART_SendStr(USART1, str_buff);
+				USART_SendEndLine(USART1);
+
+				USART_SendStr(USART1, "UID: ");
+				memset((char *)str_buff, 0x00, 10);
+				//for(uint8_t i = 0; i < 10; i ++)
+				for(uint8_t i = 0; i < PICC_ProtBaseInf.UID_SIZE; i ++)
+				{
+					sprintf(str_buff, "%02X ", PICC_ProtBaseInf.UID[i]);
+					USART_SendStr(USART1, str_buff);
+				}
+				USART_SendEndLine(USART1);
+
+
+
+
+				uint8_t keysCount;
+				rc522_status status;
+
+/*
+				keysCount = sizeof(mifareClassicDefaultKeys) / MF_CLASSIC_KEY_SIZE;
+				for (uint8_t k = 0; k < keysCount; k ++)
+				{
+					status = RC522_ReadBlock(&PICC_ProtBaseInf, 10, &mifareClassicDefaultKeys[k][0], data, sizeof(data));
+					if (status == true)
+					{
+						memset((char *)str_buff, 0x00, 20);
+						sprintf(str_buff, "KEY %02d:", k);
+						USART_SendStr(USART1, str_buff);
+						memset((char *)str_buff, 0x00, 5);
+						for (uint8_t i = 0; i < 16; i ++)
+						{
+							sprintf(str_buff, " %02X", data[i]);
+							USART_SendStr(USART1, str_buff);
+						}
+						USART_SendEndLine(USART1);
+					}
+					else
+					{
+						memset((char *)str_buff, 0x00, 60);
+						sprintf(str_buff, "KEY %02X READ ERROR CODE: %02X", k, status);
+						USART_SendStr(USART1, str_buff);
+						USART_SendEndLine(USART1);
+					}
+				}
+*/
+/*
+				for (uint8_t k = 0; k < 64; k ++)
+				{
+					status = RC522_ReadBlock(&PICC_ProtBaseInf, k, &mifareClassicDefaultKeys[0][0], data, sizeof(data));
+					if (status == true)
+					{
+						memset((char *)str_buff, 0x00, 20);
+						sprintf(str_buff, "BLOCK %02d:", k);
+						USART_SendStr(USART1, str_buff);
+						memset((char *)str_buff, 0x00, 5);
+						for (uint8_t i = 0; i < 16; i ++)
+						{
+							sprintf(str_buff, " %02X", data[i]);
+							USART_SendStr(USART1, str_buff);
+						}
+						USART_SendEndLine(USART1);
+					}
+					else
+					{
+						memset((char *)str_buff, 0x00, 60);
+						sprintf(str_buff, "BLOCK %02X READ ERROR CODE: %02X", k, status);
+						USART_SendStr(USART1, str_buff);
+						USART_SendEndLine(USART1);
+					}
+				}
+*/
+
+				RC522_test(&PICC_ProtBaseInf);
+
+			}
+
+			RC522_CardHalt();
+		}
+	}

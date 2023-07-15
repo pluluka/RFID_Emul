@@ -1,0 +1,93 @@
+/*
+ * [in] challengeNonce:  Nt
+ * [out] encryptedNonce: {Nr}
+ */
+void Crypto1_EncryptNonce(uint8_t *challengeNonce, uint8_t *encryptedNonce)
+{
+	uint8_t calc_t;
+	uint8_t readerNonce[4];
+
+	// вычисляем поток KeyStream (KS1)
+	for (uint8_t i = 0; i < CHALLENGE_NONCE_SIZE; i ++)
+	{
+		//вычисляем bit 0 октет i
+		Shift_LFSR_48(LFSR);
+		calc_t = FeedBack_48(LFSR);
+		calc_t ^= challengeNonce[i] >> 7;
+		calc_t ^= UID[i] >> 7;
+		LFSR[5] |= calc_t & 0x01;
+		calc_t = KeyStream_48(LFSR) & 0x01;
+		calc_t <<= 7;
+		KS1[i] |= calc_t;
+		//вычисляем bit 1 октет i
+		Shift_LFSR_48(LFSR);
+		calc_t = FeedBack_48(LFSR);
+		calc_t ^= challengeNonce[i] >> 6;
+		calc_t ^= UID[i] >> 6;
+		LFSR[5] |= calc_t & 0x01;
+		calc_t = KeyStream_48(LFSR) & 0x01;
+		calc_t <<= 6;
+		KS1[i] |= calc_t;
+		//вычисляем bit 2 октет i
+		Shift_LFSR_48(LFSR);
+		calc_t = FeedBack_48(LFSR);
+		calc_t ^= challengeNonce[i] >> 5;
+		calc_t ^= UID[i] >> 5;
+		LFSR[5] |= calc_t & 0x01;
+		calc_t = KeyStream_48(LFSR) & 0x01;
+		calc_t <<= 5;
+		KS1[i] |= calc_t;
+		//вычисляем bit 3 октет i
+		Shift_LFSR_48(LFSR);
+		calc_t = FeedBack_48(LFSR);
+		calc_t ^= challengeNonce[i] >> 4;
+		calc_t ^= UID[i] >> 4;
+		LFSR[5] |= calc_t & 0x01;
+		calc_t = KeyStream_48(LFSR) & 0x01;
+		calc_t <<= 4;
+		KS1[i] |= calc_t;
+		//вычисляем bit 4 октет i
+		Shift_LFSR_48(LFSR);
+		calc_t = FeedBack_48(LFSR);
+		calc_t ^= challengeNonce[i] >> 3;
+		calc_t ^= UID[i] >> 3;
+		LFSR[5] |= calc_t & 0x01;
+		calc_t = KeyStream_48(LFSR) & 0x01;
+		calc_t <<= 3;
+		KS1[i] |= calc_t;
+		//вычисляем bit 5 октет i
+		Shift_LFSR_48(LFSR);
+		calc_t = FeedBack_48(LFSR);
+		calc_t ^= challengeNonce[i] >> 2;
+		calc_t ^= UID[i] >> 2;
+		LFSR[5] |= calc_t & 0x01;
+		calc_t = KeyStream_48(LFSR) & 0x01;
+		calc_t <<= 2;
+		KS1[i] |= calc_t;
+		//вычисляем bit 6 октет i
+		Shift_LFSR_48(LFSR);
+		calc_t = FeedBack_48(LFSR);
+		calc_t ^= challengeNonce[i] >> 1;
+		calc_t ^= UID[i] >> 1;
+		LFSR[5] |= calc_t & 0x01;
+		calc_t = KeyStream_48(LFSR) & 0x01;
+		calc_t <<= 1;
+		KS1[i] |= calc_t;
+		//вычисляем bit 7 октет i
+		Shift_LFSR_48(LFSR);
+		calc_t = FeedBack_48(LFSR);
+		calc_t ^= challengeNonce[i] >> 0;
+		calc_t ^= UID[i] >> 0;
+		LFSR[5] |= calc_t & 0x01;
+		calc_t = KeyStream_48(LFSR) & 0x01;
+		calc_t <<= 0;
+		KS1[i] |= calc_t;
+	}
+
+	GetReaderNonce(readerNonce);
+
+	encryptedNonce[0] = readerNonce[0] ^ KS1[0];
+	encryptedNonce[1] = readerNonce[1] ^ KS1[1];
+	encryptedNonce[2] = readerNonce[2] ^ KS1[2];
+	encryptedNonce[3] = readerNonce[3] ^ KS1[3];
+}

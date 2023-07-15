@@ -1,0 +1,157 @@
+int main(void)
+{
+
+	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+
+	LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SYSCFG);
+	LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
+
+	NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
+
+	/* Configure the system clock */
+	SystemClock_Config();
+
+	delay_Init();
+
+	USART_DefaultInit(USART1, 9600U);
+
+
+	ILI9341_Init(SCREEN_0);
+	ILI9341_SetFont(font_main, font_main_width, font_main_height);
+	ILI9341_LED_ON();
+	ILI9341_FillScreenCol(ILI9341_COL_BLACK);
+/*
+	LCD_Console_Init(LCD_CONSOLE_FRAME_POS_X0, LCD_CONSOLE_FRAME_POS_Y0, LCD_CONSOLE_FRAME_POS_X1,
+		LCD_CONSOLE_FRAME_POS_Y1, ILI9341_COL_BLACK, ILI9341_COL_WHITE,
+		font_main, font_main_width, font_main_height);
+
+	LCD_Console_SendString("RFID-emul is running..");
+	LCD_Console_NewLine();
+	*/
+	//SPIFTabSystem_Init();
+
+
+/*
+	uint8_t rdm630Buff[5];
+	RDM630_Init();
+	RDM630_DataReceiverEnable();
+*/
+
+	uint32_t t;
+	//uint32_t t = SPIFTabSystem_TEST();
+	//t = SPIFTabSystem_RFID125K_EM4100_GetCounter();
+
+
+	//memset((char *)str_buff, 0x00, 10);
+	//sprintf(str_buff, "%08X ", t);
+	//LCD_Console_SendString(str_buff);
+	//LCD_Console_NewLine();
+
+
+	//uint32_t dl = 512;
+	//uint8_t buff[512];
+
+
+	RFID125k_EM4100_DataTypedef em4100data = {0};
+
+	/*
+	SPIFTabSystem_TEST();
+
+	for (uint32_t i = 1; i < 80; i ++)
+	{
+		em4100data.data[0] = i;
+		em4100data.data[1] = i + 1;
+		em4100data.data[2] = i + 2;
+		em4100data.data[3] = i + 3;
+		em4100data.data[4] = i + 4;
+		em4100data.name[0] = i + 11;
+		em4100data.name[1] = i + 12;
+		em4100data.name[2] = i + 13;
+		em4100data.name[3] = i + 14;
+		em4100data.name[4] = i + 15;
+		em4100data.name[5] = i + 16;
+		em4100data.name[6] = i + 17;
+		em4100data.name[7] = i + 18;
+		em4100data.name[8] = i + 19;
+		SPIFTabSystem_RFID125K_EM4100_Add(&em4100data);
+	}
+*/
+
+/*
+	uint8_t buff[16];
+	for (uint32_t j = 0; j < SPIFTabSystem_RFID125K_EM4100_GetCounter() + 1; j ++)
+	{
+		AT45DB161_MemoryRead(0x000064 + ((j*16)/512), ((j*16)%512), 16, buff);
+		memset((char *)str_buff, 0x00, 4);
+		for(uint32_t i = 0; i < 16; i ++)
+		{
+			//if ((i % 10) == 0)
+			//	LCD_Console_NewLine();
+			sprintf(str_buff, "%02X ", buff[i]);
+			USART_SendStr(USART1, str_buff);//LCD_Console_SendString(str_buff);
+		}
+		USART_SendEndLine(USART1);
+	}
+*/
+
+/*
+	SPIFTabSystem_RFID125K_EM4100_GetRec(0x2F, &em4100data);
+
+	uint8_t *buff;
+	buff = (uint8_t*)&em4100data;
+	for(uint32_t i = 0; i < sizeof(RFID125k_EM4100_DataTypedef); i ++)
+	{
+		//if ((i % 10) == 0)
+		//	LCD_Console_NewLine();
+		sprintf(str_buff, "%02X ", buff[i]);
+		USART_SendStr(USART1, str_buff);//LCD_Console_SendString(str_buff);
+	}
+	*/
+
+/*
+	uint8_t buff[100];
+	uint32_t cnt;
+	uint32_t id = 0;
+
+	uint32_t lid = SPIFTabSystem_RFID125K_EM4100_GetLastID();
+
+
+	do
+	{
+		SPIFTabSystem_RFID125K_EM4100_FillBufferWithData(id, buff, sizeof(buff), &cnt);
+		id += cnt;
+
+		for (uint32_t t = 0; t < cnt*sizeof((RFID125k_EM4100_DataTypedef){}.data); t ++)
+		{
+			if ((t % sizeof((RFID125k_EM4100_DataTypedef){}.data)) == 0)
+				USART_SendEndLine(USART1);//LCD_Console_NewLine();
+			sprintf(str_buff, "%02X ", buff[t]);
+			USART_SendStr(USART1, str_buff);//LCD_Console_SendString(str_buff);
+		}
+
+	} while(id <= lid);
+
+*/
+	uint16_t x, y;
+	uint8_t buff[20] = {0};
+	XPT2046_Init(SCREEN_0);
+	//XPT2046_Calibrate();
+
+	ExtButtonPA2_Init();
+
+	while (1)
+	{
+
+/*
+		if (XPT2046_IsTouch())
+		{
+			if (XPT2046_ReadPositionXY(&x, &y) == 0)
+			{
+				ILI9341_setPixel(x, y, ILI9341_COL_WHITE);
+			}
+
+			//delay_ms(200);
+		}
+		*/
+	}
+}

@@ -1,0 +1,44 @@
+
+=================== GPIO ================================
+#define ILI9341_PORT		GPIOB
+#define ILI9341_LED_PIN		LL_GPIO_PIN_9  // вкл. подсветки дисплея (1 - вкл)
+#define ILI9341_RST_PIN		LL_GPIO_PIN_6  // сброс (0 - сброс)
+#define ILI9341_CS_PIN		LL_GPIO_PIN_7  // CS вывод SPI
+#define ILI9341_DC_PIN		LL_GPIO_PIN_8  // команда/данные (0 - команда, 1 - данные или параметр команды)
+
+#define AT45DB161_GPIO		GPIOB
+#define AT45DB161_CS_PIN	LL_GPIO_PIN_12
+// EM4100RWE
+#define	CARRIER_GPIO				GPIOB
+#define	CARRIER_GPIO_PIN			LL_GPIO_PIN_0
+#define	DECODER_GPIO				GPIOA
+#define	DECODER_GPIO_PIN			LL_GPIO_PIN_11
+#define ENCODER_GPIO				GPIOB
+#define ENCODER_GPIO_PIN			LL_GPIO_PIN_1
+#define EMULATION_ON_GPIO			GPIOB
+#define EMULATION_ON_GPIO_PIN		LL_GPIO_PIN_2
+// OneWire
+#define ONE_WIRE_GPIO			GPIOB
+#define ONE_WIRE_GPIO_PIN		LL_GPIO_PIN_10
+
+=================== SPI ==================================
+#define ILI9341_SPI			SPI3
+#define ILI9341_SPI_AFN     ILI9341_SPI_AFN_OFF	// вкл/выкл ремап пинов
+
+#define	AT45DB161_SPI		SPI2
+
+=================== USART ================================
+#define RDM630_USART		USART6
+
+#define STDOUT_USART		USART1
+
+=================== TIMER ================================
+#define TOUCH_DELAY_TIMER			TIM10
+// EM4100RWE
+#define	CARRIER_TIMER				TIM3
+#define	CARRIER_TIMER_CHANNEL		LL_TIM_CHANNEL_CH3
+#define	DECODER_TIMER				TIM1
+#define	DECODER_TIMER_CHANNEL		LL_TIM_CHANNEL_CH4
+#define ENCODER_TIMER				TIM4
+
+

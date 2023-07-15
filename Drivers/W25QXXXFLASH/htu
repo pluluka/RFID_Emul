@@ -1,0 +1,8 @@
+	/* Перезапись данных */
+	
+	W25QXXX_SectorErase(0x3410);
+	uint8_t cnt[4] = {0xFE,0xEF,0xF9,0x9F};
+	W25QXXX_MemoryWrite(0x3410, 4, cnt);
+	uint8_t data[4] = {0};
+	W25QXXX_MemoryRead(0x3410, 4, data);
+	printf("data %02X%02X%02X%02X\n", data[0], data[1], data[2], data[3]);

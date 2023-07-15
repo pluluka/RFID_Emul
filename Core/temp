@@ -1,0 +1,8 @@
+osMessagePeek
+
+
+	font.pFont = pFont;
+	font.backgroundColor = bgColor;
+	font.charColor = charColor;
+	font.height = fontHeight;
+	font.width = fontWidth;
